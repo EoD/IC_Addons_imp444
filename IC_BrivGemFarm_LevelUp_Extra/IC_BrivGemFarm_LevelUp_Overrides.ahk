@@ -185,6 +185,7 @@ class IC_BrivGemFarm_LevelUp_Class extends IC_BrivGemFarm_Class
                           It will only level up at a time the number of champions specified in the MaxSimultaneousInputs setting.
         Parameters:       forceBrivShandie: bool - If true, force Briv/Shandie to minLevel before leveling other champions
                           timeout: integer - Time in ms before abandoning the initial leveling
+                          alreadyLevellingBriv: bool - If true, we are already trying to level up Briv
 
         Returns:
     */
