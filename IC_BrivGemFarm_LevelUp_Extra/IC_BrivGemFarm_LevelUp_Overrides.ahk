@@ -188,7 +188,7 @@ class IC_BrivGemFarm_LevelUp_Class extends IC_BrivGemFarm_Class
 
         Returns:
     */
-    BGFLU_DoPartySetupMin(forceBrivShandie := false, timeout := "")
+    BGFLU_DoPartySetupMin(forceBrivShandie := false, timeout := "", alreadyLevellingBriv := false)
     {
         currentZone := g_SF.Memory.ReadCurrentZone()
         if (forceBrivShandie || currentZone == 1)
@@ -244,7 +244,7 @@ class IC_BrivGemFarm_LevelUp_Class extends IC_BrivGemFarm_Class
         if (!g_BrivUserSettingsFromAddons[ "BGFLU_SkipMinDashWait" ] AND g_SF.ShouldDashWait())
             g_SF.DoDashWait( Max(g_SF.ModronResetZone - g_BrivUserSettings[ "DashWaitBuffer" ], 0) )
         if (g_SF.IsChampInFormation(139, formation))
-            g_SF.DoRushWait()
+            g_SF.DoRushWait(alreadyLevellingBriv)
         ; Click damage (should be enough to kill monsters at the area Thellora jumps to unless using x1)
         if (currentZone == 1 || g_SharedData.TriggerStart)
             g_SF.BGFLU_DoClickDamageSetup(, this.BGFLU_GetClickDamageTargetLevel(), Max(remainingTime, 2000))
@@ -337,7 +337,7 @@ class IC_BrivGemFarm_LevelUp_Class extends IC_BrivGemFarm_Class
         This will not level champs whose maximum level is set at 0.
         Returns: bool - True if all champions in Q formation are at or past their target level, false otherwise.
     */
-    BGFLU_DoPartySetupMax(formation := "")
+    BGFLU_DoPartySetupMax(formation := "", alreadyLevellingBriv := false)
     {
         ; Speed champions without Briv
         static champIDs := [47, 83, 91, 128, 28, 75, 59, 148, 115, 52, 102, 125, 89, 114, 98, 79, 81, 95, 56, 139]
@@ -345,8 +345,10 @@ class IC_BrivGemFarm_LevelUp_Class extends IC_BrivGemFarm_Class
         levelBriv := true ; Return value
         if (this.BGFLU_ChampUnderTargetLevel(58, this.BGFLU_GetTargetLevel(58, "Min")))
         {
-            if (this.BGFLU_AllowBrivLeveling()) ; Level Briv to be able to skip areas
-                this.BGFLU_DoPartySetupMin(true)
+            if (alreadyLevellingBriv)
+                return levelBriv
+            else if (this.BGFLU_AllowBrivLeveling()) ; Level Briv to be able to skip areas
+                this.BGFLU_DoPartySetupMin(true, "", true)
             else
                 levelBriv := false
         }
@@ -704,7 +706,7 @@ class IC_BrivGemFarm_LevelUp_SharedFunctions_Class extends IC_BrivSharedFunction
     }
 
     ; Wait for Thellora to activate her Rush ability.
-    DoRushWait()
+    DoRushWait(alreadyLevellingBriv := false)
     {
         ; Make sure the ability handler has the correct base address.
         ; It can change on game restarts or modron resets.
@@ -726,7 +728,7 @@ class IC_BrivGemFarm_LevelUp_SharedFunctions_Class extends IC_BrivSharedFunction
         {
             this.ToggleAutoProgress(0)
             this.BGFLU_LoadZ1Formation()
-            g_BrivGemFarm.BGFLU_DoPartySetupMax()
+            g_BrivGemFarm.BGFLU_DoPartySetupMax("", alreadyLevellingBriv)
             this.BGFLU_DoClickDamageSetup(1, this.BGFLU_GetClickDamageTargetLevel())
             ElapsedTime := A_TickCount - StartTime
             g_SharedData.LoopString := "Rush Wait: " . ElapsedTime . " / " . estimate
