@@ -178,6 +178,28 @@ class IC_BrivGemFarm_LevelUp_Class extends IC_BrivGemFarm_Class
         return
     }
 
+    /*
+        BGFLU_LevelUpBrivMin is a simplified clone of BGFLU_DoPartySetupMin() to avoid an endless
+        recursion levelling Briv
+    */
+    BGFLU_LevelUpBrivMin()
+    {
+        ; only level up Briv
+        lowFavorMode := g_BrivUserSettingsFromAddons[ "BGFLU_LowFavorMode" ]
+        if (lowFavorMode)
+        {
+            keyspam := this.BGFLU_GetMinLevelingKeyspamLowFavor([58])
+        }
+        else
+            keyspam := this.BGFLU_GetMinLevelingKeyspam([58])
+
+        maxKeyspam := []
+        Loop % Min(g_BrivUserSettingsFromAddons[ "BGFLU_MaxSimultaneousInputs" ], keyspam.Length())
+            maxKeyspam.Push(keyspam[A_Index])
+        ; Level up speed champions once
+        g_SF.DirectedInput(,, maxKeyspam*)
+    }
+
     /*  BGFLU_DoPartySetupMin - When gem farm is started or an adventure is reloaded, this is called to set up the primary party.
                           This will only level champs to the minium target specified in BrivGemFarm_LevelUp_Settings.json.
                           This will not level champs whose minimum level is set to 0.
@@ -346,7 +368,8 @@ class IC_BrivGemFarm_LevelUp_Class extends IC_BrivGemFarm_Class
         if (this.BGFLU_ChampUnderTargetLevel(58, this.BGFLU_GetTargetLevel(58, "Min")))
         {
             if (this.BGFLU_AllowBrivLeveling()) ; Level Briv to be able to skip areas
-                this.BGFLU_DoPartySetupMin(true)
+                this.BGFLU_LevelUpBrivMin()
+                return levelBriv
             else
                 levelBriv := false
         }
